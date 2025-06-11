@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DaddyLive Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    video { width: 100%; max-width: 100%; height: auto; background: #000; }
+  </style>
+</head>
+<body>
+  <video id="video" controls autoplay></video>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const phpUrl = params.get('src');
+
+    if (!phpUrl) {
+      alert("URL non valido: usa ?src= link a .php");
+    } else {
+      fetch(`https://stream-proxy-k3oh.onrender.com/?url=${encodeURIComponent(phpUrl)}`)
+        .then(res => res.text())
+        .then(html => {
+          const match = html.match(/['"]([^'"]+\.m3u8[^'"]*)['"]/);
+          if (match) {
+            const video = document.getElementById('video');
+            const hls = new Hls();
+            hls.loadSource(match[1]);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+              video.play();
+            });
+          } else {
+            alert("Stream non trovato nella pagina");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Errore nel caricamento del player");
+        });
+    }
+  </script>
+</body>
+</html>
